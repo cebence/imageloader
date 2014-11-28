@@ -13,5 +13,9 @@
     "url": "https://github.com/cebence/imageloader/issues"
   },
   "license": "MIT",
-  "main": "src/imageloader.js"
+  "main": "src/imageloader.js",
+  "devDependencies": {
+    "qunitjs": "~1.15.0",
+    "sinon": "~1.12.1"
+  }
 }
