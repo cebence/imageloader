@@ -159,7 +159,6 @@
    * @private
    */
   ImageLoader.prototype._onLoad = function(event) {
-console.log('img.onload: ' + event.target.src);//XXX
     var img = event.target;
     img.dataset.loaderStatus = LOADED;
     this._detachListeners(img);
