@@ -1,0 +1,17 @@
+{
+  "name": "imageloader",
+  "version": "0.1.0",
+  "description": "Customizable JavaScript image loader",
+  "keywords": [ "image", "load", "preload", "background" ],
+  "author": "Dejan Ćebetarević",
+  "homepage": "https://github.com/cebence/imageloader",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cebence/imageloader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cebence/imageloader/issues"
+  },
+  "license": "MIT",
+  "main": "src/imageloader.js"
+}
