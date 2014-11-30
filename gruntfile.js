@@ -11,5 +11,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-qunit');
 
   // Register default task(s).
-  grunt.registerTask('default', [ 'qunit' ]);
+  grunt.registerTask('default', [ 'test' ]);
+
+  // Register testing task(s).
+  grunt.registerTask('test', [ 'qunit' ]);
 };
