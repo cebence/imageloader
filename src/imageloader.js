@@ -54,6 +54,7 @@
    * @param { boolean } autoStart Start loading automatically? Default `true`.
    * @param { boolean } parallel Load multiple images in parallel? Default `true`.
    * @param { function } onProgress `progress` event listener.
+   * @param { function } onError `error` event listener (image failed to load).
    * @param { function } onComplete `complete` event listener.
    */
   var defaultOptions = {
@@ -160,7 +161,7 @@
   };
 
   /**
-   * `img.onload` event listener
+   * `img.onload` event listener.
    *
    * @private
    */
@@ -168,10 +169,13 @@
     var img = event.target;
     img.dataset.loaderStatus = LOADED;
     this._detachListeners(img);
+
+    this._completed++;
+    this._notify(img);
   };
 
   /**
-   * `img.onerror` and `img.onabort` event listener
+   * `img.onerror` and `img.onabort` event listener.
    *
    * @private
    */
@@ -179,6 +183,43 @@
     var img = event.target;
     img.dataset.loaderStatus = NOT_LOADED;
     this._detachListeners(img);
+
+    this._failed++;
+    this._notify(img);
+  };
+
+  /**
+   * `options.onProgress` and `options.onComplete` event trigger.
+   *
+   * @private
+   */
+  ImageLoader.prototype._notify = function(img) {
+    var opts = this._options;
+
+    if (opts.onProgress) {
+      opts.onProgress({
+        loader: this,
+        image: img,
+        src: img.src,
+        status: img.dataset.loaderStatus,
+        index: this._images.indexOf(img),
+        completed: this._completed,
+        failed: this._failed,
+        total: this._urls.length
+      });
+    }
+
+    // If we're done fire the onComplete event.
+    if ((this._completed + this._failed) === this._urls.length) {
+      if (opts.onComplete) {
+        opts.onComplete({
+          loader: this,
+          completed: this._completed,
+          failed: this._failed,
+          total: this._urls.length
+        });
+      }
+    }
   };
 
   /**
@@ -191,6 +232,41 @@
   };
 
   /**
+   * Returns an array of all loaded images, i.e. `status == LOADED`.
+   *
+   * @return { array:HTMLImageElement }
+   */
+  ImageLoader.prototype.getCompleted = function() {
+    var i,
+        imgs = this._images,
+        result = [];
+    for (i = 0; i < imgs.length; i++) {
+      if (imgs[i].dataset.loaderStatus === LOADED) {
+        result.push(imgs[i]);
+      }
+    }
+    return result;
+  };
+
+  /**
+   * Returns an array of all failed images, i.e. `status == NOT_LOADED`.
+   *
+   * @return { array:HTMLImageElement }
+   */
+  ImageLoader.prototype.getFailed = function() {
+    var i,
+        imgs = this._images,
+        result = [];
+    for (i = 0; i < imgs.length; i++) {
+      var status = imgs[i].dataset.loaderStatus;
+      if (status === NOT_LOADED) {
+        result.push(imgs[i]);
+      }
+    }
+    return result;
+  };
+
+  /**
    * Starts loading images. Called automatically if `autoStart` option is `true`.
    */
   ImageLoader.prototype.load = function() {
@@ -198,6 +274,8 @@
         opts = this._options,
         urls = this._urls;
 
+    this._completed = 0;
+    this._failed = 0;
     this._images = this._images || [];
 
     if (opts.parallel) {
