@@ -54,7 +54,6 @@
    * @param { boolean } autoStart Start loading automatically? Default `true`.
    * @param { boolean } parallel Load multiple images in parallel? Default `true`.
    * @param { function } onProgress `progress` event listener.
-   * @param { function } onError `error` event listener (image failed to load).
    * @param { function } onComplete `complete` event listener.
    */
   var defaultOptions = {
@@ -161,6 +160,27 @@
   };
 
   /**
+   * Builds an event object that can be used for onProgress/onSuccess/onError.
+   *
+   * @param { HTMLImageElement } img Image to create the event for.
+   * @private
+   */
+  ImageLoader.prototype._createEvent = function(img) {
+    var result = {
+      loader: this,
+      image: img,
+      url: img.src,
+      index: this._images.indexOf(img),
+      status: img.dataset.loaderStatus,
+      completed: this._completed,
+      failed: this._failed,
+      total: this._urls.length
+    };
+    result.success = result.status === LOADED;
+    return result;
+  };
+
+  /**
    * `img.onload` event listener.
    *
    * @private
@@ -172,6 +192,7 @@
 
     this._completed++;
     this._notify(img);
+    this._loadNext();
   };
 
   /**
@@ -186,6 +207,7 @@
 
     this._failed++;
     this._notify(img);
+    this._loadNext();
   };
 
   /**
@@ -197,16 +219,7 @@
     var opts = this._options;
 
     if (opts.onProgress) {
-      opts.onProgress({
-        loader: this,
-        image: img,
-        src: img.src,
-        status: img.dataset.loaderStatus,
-        index: this._images.indexOf(img),
-        completed: this._completed,
-        failed: this._failed,
-        total: this._urls.length
-      });
+      opts.onProgress(this._createEvent(img));
     }
 
     // If we're done fire the onComplete event.
@@ -214,6 +227,7 @@
       if (opts.onComplete) {
         opts.onComplete({
           loader: this,
+          images: this.getImages(),
           completed: this._completed,
           failed: this._failed,
           total: this._urls.length
@@ -284,10 +298,25 @@
       }
     }
     else {
+      this._currentIndex = 0;
       this._loadImage(urls[0], 0);
     }
 
     return this;
+  };
+
+  /**
+   * Continue loading. Called if `parallel` option is `false`.
+   *
+   * @private
+   */
+  ImageLoader.prototype._loadNext = function() {
+    if (! this._options.parallel) {
+      var i = ++this._currentIndex;
+      if (i < this._urls.length) {
+        this._loadImage(this._urls[i], i);
+      }
+    }
   };
 
   /**
