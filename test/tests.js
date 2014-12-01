@@ -7,34 +7,46 @@ var INVALID_IMAGE = "data:image/gif;base64,invalid=",
     WHITE_GIF = "data:image/gif;base64,R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs=",
     VALID_IMAGES = [ BLACK_GIF, RED_GIF, WHITE_GIF];
 
-QUnit.test("Nothing to load (no args)", function (assert) {
+QUnit.asyncTest("Nothing to load (no args)", function (assert) {
   var loader = new ImageLoader();
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
-  var expected = 0;
-  var actual = loader.getImages().length;
-  assert.equal(actual, expected, "There was nothing to load.");
+  setTimeout(function() {
+    var expected = 0;
+    var actual = loader.getImages().length;
+    assert.equal(actual, expected, "There was nothing to load.");
+
+    QUnit.start();
+  }, 5);
 });
 
-QUnit.test("Load single URL (not an array)", function (assert) {
+QUnit.asyncTest("Load single URL (not an array)", function (assert) {
   var loader = new ImageLoader(BLACK_GIF);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
-  var expected = 1;
-  var actual = loader.getImages().length;
-  assert.equal(actual, expected, "Single image loaded.");
+  setTimeout(function() {
+    var expected = 1;
+    var actual = loader.getImages().length;
+    assert.equal(actual, expected, "Single image loaded.");
+
+    QUnit.start();
+  }, 5);
 });
 
-QUnit.test("Load multiple URLs", function (assert) {
+QUnit.asyncTest("Load multiple URLs", function (assert) {
   var loader = new ImageLoader(VALID_IMAGES);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
-  var expected = 3;
-  var actual = loader.getImages().length;
-  assert.equal(actual, expected, "Multiple images loaded.");
+  setTimeout(function() {
+    var expected = 3;
+    var actual = loader.getImages().length;
+    assert.equal(actual, expected, "Multiple images loaded.");
+
+    QUnit.start();
+  }, 5);
 });
 
-QUnit.asyncTest("Load a valid image/URL", function (assert) {
+QUnit.asyncTest("Load a valid image", function (assert) {
   var loader = new ImageLoader(BLACK_GIF);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
@@ -45,10 +57,10 @@ QUnit.asyncTest("Load a valid image/URL", function (assert) {
     assert.equal(actual[0].src, BLACK_GIF, "URL confirmed.");
     assert.equal(actual[0].dataset.loaderStatus, ImageLoader.LOADED, "Image loaded.");
     QUnit.start();
-  }, 100);
+  }, 5);
 });
 
-QUnit.asyncTest("Load an invalid image/URL", function (assert) {
+QUnit.asyncTest("Load an invalid image", function (assert) {
   var loader = new ImageLoader(INVALID_IMAGE);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
@@ -59,17 +71,109 @@ QUnit.asyncTest("Load an invalid image/URL", function (assert) {
     assert.equal(actual[0].src, INVALID_IMAGE, "URL confirmed.");
     assert.equal(actual[0].dataset.loaderStatus, ImageLoader.NOT_LOADED, "Image not loaded.");
     QUnit.start();
-  }, 100);
+  }, 5);
 });
 
-QUnit.test("Confirm loaded URLs", function (assert) {
+QUnit.asyncTest("Confirm loaded URLs", function (assert) {
   var loader = new ImageLoader(VALID_IMAGES);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
 
-  var expected = VALID_IMAGES;
-  var actual = loader.getImages();
-  var i;
-  for (i in actual) {
-    assert.equal(actual[i].src, expected[i], "URL #" + i + " confirmed.");
-  }
+  setTimeout(function() {
+    var expected = VALID_IMAGES;
+    var actual = loader.getImages();
+    var i;
+    for (i in actual) {
+      assert.equal(actual[i].src, expected[i], "URL #" + i + " confirmed.");
+    }
+
+    QUnit.start();
+  }, 5);
+});
+
+QUnit.asyncTest("onProgress fired for a valid image", function (assert) {
+  var listener = sinon.spy(),
+      loader = new ImageLoader(BLACK_GIF, { onProgress: listener });
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  setTimeout(function() {
+    assert.equal(listener.callCount, 1, "onProgress fired once.");
+    assert.ok(listener.calledWith(sinon.match.object), "Event object present.");
+    var event = listener.firstCall.args[0];
+    assert.equal(event.src, BLACK_GIF, "event.src confirmed.");
+    assert.equal(event.status, ImageLoader.LOADED, "event.status confirmed.");
+    assert.equal(event.completed, 1, "event.completed confirmed.");
+    assert.equal(event.failed, 0, "event.failed confirmed.");
+    QUnit.start();
+  }, 5);
+});
+
+QUnit.asyncTest("onProgress fired for an invalid image", function (assert) {
+  var listener = sinon.spy(),
+      loader = new ImageLoader(INVALID_IMAGE, { onProgress: listener });
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  setTimeout(function() {
+    assert.equal(listener.callCount, 1, "onProgress fired once.");
+    assert.ok(listener.calledWith(sinon.match.object), "Event object present.");
+    var event = listener.firstCall.args[0];
+    assert.equal(event.src, INVALID_IMAGE, "event.src confirmed.");
+    assert.equal(event.status, ImageLoader.NOT_LOADED, "event.status confirmed.");
+    assert.equal(event.completed, 0, "event.completed confirmed.");
+    assert.equal(event.failed, 1, "event.failed confirmed.");
+
+    QUnit.start();
+  }, 5);
+});
+
+QUnit.asyncTest("onComplete fired for one valid image", function (assert) {
+  var listener = sinon.spy(),
+      loader = new ImageLoader(BLACK_GIF, { onComplete: listener });
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  setTimeout(function() {
+    assert.equal(listener.callCount, 1, "onComplete fired once.");
+    assert.ok(listener.calledWith(sinon.match.object), "Event object present.");
+    var event = listener.firstCall.args[0];
+    assert.equal(event.loader, loader, "event.loader confirmed.");
+    assert.equal(event.total, 1, "event.total confirmed.");
+    assert.equal(event.completed, 1, "event.completed confirmed.");
+    assert.equal(event.failed, 0, "event.failed confirmed.");
+    QUnit.start();
+  }, 5);
+});
+
+QUnit.asyncTest("onComplete fired for an invalid image", function (assert) {
+  var listener = sinon.spy(),
+      loader = new ImageLoader(INVALID_IMAGE, { onComplete: listener });
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  setTimeout(function() {
+    assert.equal(listener.callCount, 1, "onComplete fired once.");
+    assert.ok(listener.calledWith(sinon.match.object), "Event object present.");
+    var event = listener.firstCall.args[0];
+    assert.equal(event.loader, loader, "event.loader confirmed.");
+    assert.equal(event.total, 1, "event.total confirmed.");
+    assert.equal(event.completed, 0, "event.completed confirmed.");
+    assert.equal(event.failed, 1, "event.failed confirmed.");
+
+    QUnit.start();
+  }, 5);
+});
+
+QUnit.asyncTest("onComplete fired for multiple mixed images", function (assert) {
+  var urls = [ BLACK_GIF, INVALID_IMAGE, WHITE_GIF ],
+      listener = sinon.spy(),
+      loader = new ImageLoader(urls, { onComplete: listener });
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  setTimeout(function() {
+    assert.equal(listener.callCount, 1, "onComplete fired once.");
+    assert.ok(listener.calledWith(sinon.match.object), "Event object present.");
+    var event = listener.firstCall.args[0];
+    assert.equal(event.loader, loader, "event.loader confirmed.");
+    assert.equal(event.total, 3, "event.total confirmed.");
+    assert.equal(event.completed, 2, "event.completed confirmed.");
+    assert.equal(event.failed, 1, "event.failed confirmed.");
+    QUnit.start();
+  }, 5);
 });
