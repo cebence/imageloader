@@ -49,6 +49,13 @@
         }
       };
 
+  /**
+   * Default ImageLoader options.
+   * @param { boolean } autoStart Start loading automatically? Default `true`.
+   * @param { boolean } parallel Load multiple images in parallel? Default `true`.
+   * @param { function } onProgress `progress` event listener.
+   * @param { function } onComplete `complete` event listener.
+   */
   var defaultOptions = {
     autoStart: true,
     parallel: true,
@@ -74,7 +81,6 @@
     // Bind event listeners.
     this._onLoadBound = bind(this._onLoad, this);
     this._onErrorBound = bind(this._onError, this);
-    this._onAbortBound = bind(this._onAbort, this);
 
     // Set initial options.
     this._options = extend(defaultOptions, options);
@@ -139,7 +145,7 @@
   ImageLoader.prototype._attachListeners = function(image) {
     addListener(image, 'load', this._onLoadBound);
     addListener(image, 'error', this._onErrorBound);
-    addListener(image, 'abort', this._onAbortBound);
+    addListener(image, 'abort', this._onErrorBound);
   };
 
   /**
@@ -150,7 +156,7 @@
   ImageLoader.prototype._detachListeners = function(image) {
     removeListener(image, 'load', this._onLoadBound);
     removeListener(image, 'error', this._onErrorBound);
-    removeListener(image, 'abort', this._onAbortBound);
+    removeListener(image, 'abort', this._onErrorBound);
   };
 
   /**
@@ -165,22 +171,11 @@
   };
 
   /**
-   * `img.onerror` event listener
+   * `img.onerror` and `img.onabort` event listener
    *
    * @private
    */
   ImageLoader.prototype._onError = function(event) {
-    var img = event.target;
-    img.dataset.loaderStatus = NOT_LOADED;
-    this._detachListeners(img);
-  };
-
-  /**
-   * `img.onabort` event listener
-   *
-   * @private
-   */
-  ImageLoader.prototype._onAbort = function(event) {
     var img = event.target;
     img.dataset.loaderStatus = NOT_LOADED;
     this._detachListeners(img);
