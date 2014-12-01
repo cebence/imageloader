@@ -34,6 +34,20 @@ QUnit.test("Load multiple URLs", function (assert) {
   assert.equal(actual, expected, "Multiple images loaded.");
 });
 
+QUnit.asyncTest("Load a valid image/URL", function (assert) {
+  var loader = new ImageLoader(BLACK_GIF);
+  assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
+
+  // Has to be asyncTest, resource loading takes time!
+  setTimeout(function() {
+    var actual = loader.getImages();
+    assert.equal(actual.length, 1, "One image created.");
+    assert.equal(actual[0].src, BLACK_GIF, "URL confirmed.");
+    assert.equal(actual[0].dataset.loaderStatus, ImageLoader.LOADED, "Image loaded.");
+    QUnit.start();
+  }, 100);
+});
+
 QUnit.asyncTest("Load an invalid image/URL", function (assert) {
   var loader = new ImageLoader(INVALID_IMAGE);
   assert.ok(loader instanceof ImageLoader, "ImageLoader instance created.");
