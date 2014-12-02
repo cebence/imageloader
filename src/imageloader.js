@@ -171,6 +171,7 @@
       image: img,
       url: img.src,
       index: this._images.indexOf(img),
+      count: this._completed + this._failed, //TODO this._currentIndex
       status: img.dataset.loaderStatus,
       completed: this._completed,
       failed: this._failed,
